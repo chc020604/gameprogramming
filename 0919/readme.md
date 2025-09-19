@@ -1,1 +1,1 @@
-* visuaigo: 자료구조
+* visualgo: 자료구조
