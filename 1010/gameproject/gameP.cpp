@@ -2,10 +2,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <windows.h>
-#include <time.h> // 시간 및 랜덤 함수를 위해 추가
-#include <conio.h> // _kbhit, _getch 함수를 위해 추가
+#include <time.h>
+#include <conio.h> 
 
-// --- BGM 및 효과음을 위한 노트 음계 정의 ---
 // BGM
 #define NOTE_F5  700
 #define NOTE_G5  784
@@ -25,31 +24,27 @@
 #define NOTE_E4 330
 #define NOTE_C5 523
 
-
-// BGM 재생을 제어하기 위한 전역 변수
 volatile BOOL g_is_music_playing = TRUE;
 
-// 함수 선언
-void draw_rectangle(int start_x, int start_y, int c, int r); // 파라미터 변경
+void draw_rectangle(int start_x, int start_y, int c, int r);
 void display_abacus(int m[], int show_numbers);
 void div_number(int mc[], long number);
 void gotoxy(int x, int y);
-int game_mode(int show_answer_mode); // 게임 모드 함수 선언 변경
-void draw_hangman(int lives); // 행맨 그리는 함수 선언
-void clear_screen(); // 화면 지우는 함수 선언
+int game_mode(int show_answer_mode); // 게임 모드 함수
+void draw_hangman(int lives); // 행맨 그리는 함수
+void clear_screen(); // 화면 지우는 함수
 DWORD WINAPI play_music(LPVOID lpParam); // BGM을 재생할 스레드 함수
 
-// 효과음, 인트로, 아웃트로 함수 선언
 void play_success_sound();
 void play_failure_sound();
 void play_gameover_sound();
 void show_intro_screen();
-char show_outro_screen(int score); // 반환 타입 변경
+char show_outro_screen(int score); 
 
 int main(void)
 {
     SetConsoleOutputCP(65001);
-    srand(time(NULL)); // 랜덤 시드 초기화
+    srand(time(NULL));
 
     while(1) // 게임 재시작을 위한 메인 루프
     {
@@ -68,7 +63,7 @@ int main(void)
             printf("모드를 선택하세요:\n");
             printf("1. 주판 연습 모드\n");
             printf("2. 주판 읽기 게임\n");
-            printf("3. 정답 보기 모드\n"); // 정답 모드 추가
+            printf("3. 정답 보기 모드\n");
             printf("> ");
             scanf("%d", &mode);
             while(getchar() != '\n');
@@ -78,19 +73,17 @@ int main(void)
             int score = game_mode(mode == 3 ? 1 : 0);
             
             // 게임 오버 처리
-            g_is_music_playing = FALSE; // BGM 스레드에 종료 신호
+            g_is_music_playing = FALSE;
             play_gameover_sound();
             char choice = show_outro_screen(score);
             
             if (choice == 'x' || choice == 'X') {
-                 // BGM 스레드 정리 후 종료
                 if (hThread != NULL) {
                     WaitForSingleObject(hThread, 1000);
                     CloseHandle(hThread);
                 }
-                break; // 메인 루프 탈출
+                break;
             }
-            // Enter를 누르면 루프가 계속되어 재시작
         } else {
             // --- 기존의 주판 연습 모드 ---
             clear_screen();
@@ -125,11 +118,9 @@ int main(void)
 
             } while (number >= 0);
             
-            g_is_music_playing = FALSE; // 연습 모드 종료 시 BGM 정지
-            break; // 메인 루프 탈출
-        }
-        
-        // --- 루프 마지막에서 BGM 스레드 정리 ---
+            g_is_music_playing = FALSE;
+            break;
+        } 
         if (hThread != NULL) {
             WaitForSingleObject(hThread, 1000);
             CloseHandle(hThread);
@@ -143,8 +134,7 @@ int main(void)
 void show_intro_screen() {
     clear_screen();
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    
-    // 색상 정의 (FOREGROUND_INTENSITY는 밝은 색을 의미)
+
     const int BROWN = FOREGROUND_RED | FOREGROUND_GREEN;
     const int YELLOW = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
     const int WHITE = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
@@ -171,16 +161,16 @@ void show_intro_screen() {
 
     // 2. 주판 행맨 그리기 애니메이션
     SetConsoleTextAttribute(hConsole, YELLOW);
-    gotoxy(35, 8);  printf(" ●"); // 머리는 주판알
+    gotoxy(35, 8);  printf(" ●");
     Beep(NOTE_G4, 100);
     Sleep(150);
-    gotoxy(34, 9);  printf("─┼─"); // 몸통은 주판 가름대
+    gotoxy(34, 9);  printf("─┼─");
     Beep(NOTE_G4, 100);
     Sleep(150);
-    gotoxy(35, 10); printf(" │"); // 몸통은 주판대
+    gotoxy(35, 10); printf(" │");
     Beep(NOTE_G4, 100);
     Sleep(150);
-    gotoxy(34, 11); printf("/ \\"); // 다리
+    gotoxy(34, 11); printf("/ \\");
     Beep(NOTE_A3, 200);
     Sleep(150);
 
@@ -190,7 +180,7 @@ void show_intro_screen() {
     gotoxy(28, 16);
     for (int i=0; i<strlen(title); i++){
         printf("%c", title[i]);
-        Beep(NOTE_C6, 20); // 타이핑 효과음
+        Beep(NOTE_C6, 20);
         Sleep(50);
     }
     
@@ -198,9 +188,8 @@ void show_intro_screen() {
     SetConsoleTextAttribute(hConsole, WHITE);
     gotoxy(28, 20);
     printf("Press Enter to Start...");
-    while(getchar() != '\n'); // Enter 키를 누를 때까지 대기
-    
-    // 콘솔 색상 원래대로 복구
+    while(getchar() != '\n');
+
     SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 }
 
@@ -237,14 +226,12 @@ char show_outro_screen(int score) {
 
 // BGM을 백그라운드에서 재생하는 스레드 함수
 DWORD WINAPI play_music(LPVOID lpParam) {
-    // 멜로디를 2옥타브 올림
     int melody[] = {
         NOTE_G5, NOTE_G5, NOTE_G5, NOTE_AS5, NOTE_A5, NOTE_G5, NOTE_F5, NOTE_F5,
         REST,
         NOTE_G5, NOTE_G5, NOTE_G5, NOTE_AS5, NOTE_A5, NOTE_G5, NOTE_A5, NOTE_G5,
         REST
     };
-    // 각 음의 길이를 길게 하여 멜로디를 풍성하게 만듦
     int durations[] = {
         150, 150, 150, 300, 300, 200, 200, 200,
         100,
@@ -252,17 +239,17 @@ DWORD WINAPI play_music(LPVOID lpParam) {
         400
     };
     int notes = sizeof(melody) / sizeof(melody[0]);
-    int note_gap = 50; // 음 사이에 50ms의 짧은 쉼을 줌
+    int note_gap = 50;
 
-    while (g_is_music_playing) { // g_is_music_playing이 TRUE인 동안 무한 반복
+    while (g_is_music_playing) {
         for (int i = 0; i < notes; i++) {
-            if (!g_is_music_playing) break; // 종료 신호가 오면 즉시 중단
+            if (!g_is_music_playing) break;
             
             if (melody[i] == REST) {
-                Sleep(durations[i]); // 쉼표는 소리 없이 대기
+                Sleep(durations[i]); 
             } else {
-                Beep(melody[i], durations[i]); // 해당 음과 길이로 소리 재생
-                Sleep(note_gap); // 음과 음 사이에 짧은 간격을 주어 자연스럽게 만듦
+                Beep(melody[i], durations[i]);
+                Sleep(note_gap);
             }
         }
     }
@@ -355,35 +342,35 @@ int game_mode(int show_answer_mode) {
         time_t start_time = time(NULL);
         double remaining_time = time_limit;
 
-        gotoxy(14, 24); // 입력 시작 위치
+        gotoxy(14, 24);
 
         while (remaining_time > 0) {
             // 남은 시간 표시
             gotoxy(28, 23);
             printf("(남은 시간: %2.0f초)  ", remaining_time);
-            gotoxy(14 + char_index, 24); // 커서 위치 유지
+            gotoxy(14 + char_index, 24);
 
-            if (_kbhit()) { // 키 입력이 있으면
+            if (_kbhit()) {
                 char ch = _getch();
                 if (ch >= '0' && ch <= '9' && char_index < 10) {
                     answer_str[char_index++] = ch;
                     printf("%c", ch);
-                } else if (ch == 8 && char_index > 0) { // 백스페이스
+                } else if (ch == 8 && char_index > 0) {
                     char_index--;
                     gotoxy(14 + char_index, 24);
                     printf(" ");
                     gotoxy(14 + char_index, 24);
-                } else if (ch == 13) { // 엔터 키
+                } else if (ch == 13) {
                     timed_out = FALSE;
                     break;
                 }
             }
-            Sleep(100); // CPU 사용량 줄이기
+            Sleep(100);
             remaining_time = time_limit - difftime(time(NULL), start_time);
         }
 
-        answer_str[char_index] = '\0'; // 문자열 마무리
-        answer = atol(answer_str); // 문자열을 숫자로 변환
+        answer_str[char_index] = '\0'; 
+        answer = atol(answer_str);
         
         // --- 정답 확인 ---
         gotoxy(2, 25);
@@ -396,7 +383,7 @@ int game_mode(int show_answer_mode) {
             score++;
             Sleep(2000);
         } else {
-            lives--; // 목숨 먼저 감소
+            lives--;
             if(timed_out) {
                 printf("시간 초과! (정답: %ld)", question);
             } else {
@@ -404,26 +391,24 @@ int game_mode(int show_answer_mode) {
             }
             
             play_failure_sound();
-            Sleep(500); // 메시지를 잠시 보여줌
+            Sleep(500);
 
             // --- 빨간색 깜빡임 효과 ---
             SetConsoleTextAttribute(hConsole, RED);
-            display_abacus(mc, 0); // 주판을 빨간색으로 다시 그림
-            draw_hangman(lives);   // 행맨을 빨간색으로 다시 그림
-            Sleep(1000); // 1초간 빨간색으로 유지
-            
-            // 원래 색으로 복구
+            display_abacus(mc, 0); 
+            draw_hangman(lives);   
+            Sleep(1000); 
+
             SetConsoleTextAttribute(hConsole, WHITE);
         }
     }
 
-    return score; // 게임 오버 시 최종 점수 반환
+    return score;
 }
 
 
 // 행맨을 그리는 함수
 void draw_hangman(int lives) {
-    // 행맨 위치를 오른쪽 사각형 안으로 조정
     gotoxy(40, 7);  printf(" _________");
     gotoxy(40, 8);  printf(" |/      |");
     gotoxy(40, 9);  printf(" |      %c", lives < 6 ? 'O' : ' ');
@@ -433,7 +418,6 @@ void draw_hangman(int lives) {
     gotoxy(40, 13); printf(" |");
     gotoxy(40, 14); printf("_|___");
 }
-
 
 // 화면을 지우는 함수
 void clear_screen() {
@@ -534,6 +518,7 @@ void gotoxy(int x, int y)
     COORD Pos = {x - 1, y - 1};
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), Pos);
 }
+
 
 
 
